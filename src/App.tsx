@@ -1,36 +1,37 @@
-import { useState } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { TDSMobileAITProvider } from '@toss/tds-mobile-ait'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { ThemeProvider } from '@toss/tds-mobile'
+import IntroPage from './pages/IntroPage'
+import LoginPage from './pages/LoginPage'
+import WritePage from './pages/WritePage'
+import AdPage from './pages/AdPage'
+import StatsPage from './pages/StatsPage'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const isAITEnvironment = typeof window !== 'undefined' && 
+    (window.location.hostname.includes('ait') || 
+     import.meta.env.MODE === 'production')
 
-  return (
-    <TDSMobileAITProvider>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </TDSMobileAITProvider>
+  const routes = (
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<IntroPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/write" element={<WritePage />} />
+          <Route path="/ad" element={<AdPage />} />
+          <Route path="/stats" element={<StatsPage />} />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   )
+
+  if (isAITEnvironment) {
+    return <TDSMobileAITProvider>{routes}</TDSMobileAITProvider>
+  }
+
+  return routes
 }
 
 export default App
