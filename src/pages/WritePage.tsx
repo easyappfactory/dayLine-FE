@@ -4,6 +4,7 @@ import {
   TextField,
   Button,
 } from '@toss/tds-mobile';
+import { getToday, formatDate } from '../utils/dateUtils';
 //import { adaptive } from '@toss/tds-colors';
 
 export default function Page() {
@@ -11,9 +12,8 @@ export default function Page() {
   const navigate = useNavigate();
   
   // 오늘 날짜 가져오기
-  //추후 유틸 분리 필요
-  const today = new Date();
-  const formattedDate = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
+  const today = getToday();
+  const formattedDate = formatDate(today);
   
   const handleConfirm = () => {
     if (value.trim()) {
