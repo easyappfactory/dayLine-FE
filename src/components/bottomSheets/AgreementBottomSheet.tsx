@@ -1,0 +1,103 @@
+import { useState } from "react";
+import { TextButton, BottomSheet, AgreementV3 } from "@toss/tds-mobile";
+import { adaptive } from "@toss/tds-colors";
+
+interface AgreementBottomSheetProps {
+  open: boolean;
+  onClose: () => void;
+  onAgree?: (agreed: boolean) => void;
+}
+
+export const AgreementBottomSheet = ({
+  open,
+  onClose,
+  onAgree,
+}: AgreementBottomSheetProps) => {
+  const [isChecked, setIsChecked] = useState(false);
+
+  const handleAgreeClick = () => {
+    if (isChecked) {
+      onAgree?.(true);
+      onClose();
+    }
+  };
+
+  return (
+    <BottomSheet style={{ backgroundColor: "#fff" }}
+      header={
+        <BottomSheet.Header>
+          오늘 한줄 로그인을 위해 꼭 필요한 동의만 추렸어요
+        </BottomSheet.Header>
+      }
+      open={open}
+      onClose={onClose}
+      cta={
+        <div onClick={handleAgreeClick}>
+          <BottomSheet.CTA
+            bottomAccessory={
+              <TextButton size="xsmall" variant="underline" onClick={onClose}>
+                다음에
+              </TextButton>
+            }
+            color="primary"
+            variant="fill"
+            disabled={!isChecked}
+          >
+            동의하고 시작하기
+          </BottomSheet.CTA>
+        </div>
+      }
+    >
+      <div style={{ padding: "20px 24px" }}>
+        <style>
+          {`
+            .agreement-checkbox-wrapper {
+              border-radius: 12px;
+              padding: 16px;
+              margin: -16px;
+              transition: background-color 0.2s ease;
+              cursor: pointer;
+            }
+            .agreement-checkbox-wrapper:hover {
+              background-color: ${adaptive.grey50};
+            }
+            .agreement-unchecked label {
+              color: ${adaptive.grey600} !important;
+            }
+            .agreement-checked label {
+              color: ${adaptive.grey900} !important;
+            }
+          `}
+        </style>
+        
+        <div className="agreement-checkbox-wrapper">
+          <div className={isChecked ? 'agreement-checked' : 'agreement-unchecked'}>
+            <AgreementV3.SingleCheckboxField
+              type={isChecked ? "medium-bold" : "medium"}
+              indent={0}
+              necessity="mandatory"
+              checked={isChecked}
+              onCheckedChange={setIsChecked}
+            >
+              개인정보 수집 및 이용 동의
+            </AgreementV3.SingleCheckboxField>
+          </div>
+        </div>
+        
+        <AgreementV3.Description indent={1}>
+          <TextButton
+            size="xsmall"
+            variant="underline"
+            onClick={() => {
+              // 개인정보 처리방침 페이지로 이동
+              console.log("개인정보 처리방침 상세 보기");
+            }}
+          >
+            상세 내용 보기
+          </TextButton>
+        </AgreementV3.Description>
+      </div>
+    </BottomSheet>
+  );
+};
+
