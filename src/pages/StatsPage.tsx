@@ -1,11 +1,47 @@
 import { useState } from 'react';
-import { Tab, ListHeader, Text, Paragraph, Asset, Button } from '@toss/tds-mobile';
+import { Tab, ListHeader, Text, Asset, Button } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+
+import { CalendarView } from '../components/stats/CalendarView';
+import { GraphView } from '../components/stats/GraphView';
+import { StatsDetailView } from '../components/stats/StatsDetailView';
+import type { DiaryEntry } from '../types/diary';
+import { useDiaryData } from '../hooks/useDiaryData';
 
 export default function Page() {
+  const { getAllData, getRecentEntry, getEntryByDate } = useDiaryData();
+  const allData = getAllData();
+
   // true면 완료 화면, false면 통계 화면을 보여줍니다.
   const [showComplete, setShowComplete] = useState(true);
-  const [selectedTab, setSelectedTab] = useState(0);
+  const [selectedTab, setSelectedTab] = useState(0); // 0: 그래프, 1: 달력
+  
+  // 현재 보여줄 년월 (초기값 2025년 11월, index 10)
+  const currentYear = 2025;
+  const [currentMonth, setCurrentMonth] = useState(10); // 0-based index (11월)
+
+  // 2025년 1월 ~ 12월 (0 ~ 11)
+  const months = Array.from({ length: 12 }, (_, i) => i);
+
+  // 선택된 날짜 (YYYY-MM-DD)
+  // 초기값으로 가장 최근 데이터 설정
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const recentEntry = getRecentEntry(2025, 10);
+    return recentEntry ? recentEntry.date : '';
+  });
+  
+  const [selectedEntry, setSelectedEntry] = useState<DiaryEntry | null>(() => {
+    return getEntryByDate(selectedDate);
+  });
+
+  // 날짜 선택 핸들러
+  const handleSelectDate = (date: string) => {
+    setSelectedDate(date);
+    const entry = getEntryByDate(date);
+    setSelectedEntry(entry);
+  };
 
   // 1. 완료 화면 렌더링 (showComplete가 true일 때)
   if (showComplete) {
@@ -45,7 +81,7 @@ export default function Page() {
         <Button 
           display="block" 
           style={{ marginTop: '16px' }} 
-          onClick={() => setShowComplete(false)} // 버튼 클릭 시 통계 화면으로 전환
+          onClick={() => setShowComplete(false)}
         >
           이동하기
         </Button>
@@ -69,6 +105,7 @@ export default function Page() {
           달력
         </Tab.Item>
       </Tab>
+
       <ListHeader
         title={
           <ListHeader.TitleParagraph
@@ -76,26 +113,60 @@ export default function Page() {
             fontWeight="bold"
             typography="t5"
           >
-            2025.11.12 한 줄 
+            {currentYear}.{currentMonth + 1} 한 줄 
           </ListHeader.TitleParagraph>
         }
         descriptionPosition="bottom"
       />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Paragraph typography="t5">
-          <Paragraph.Badge color="blue" variant="fill">
-            83
-          </Paragraph.Badge>
-        </Paragraph>
-      </div>
-      <Text
-        display="block"
-        color={adaptive.grey700}
-        typography="t5"
-        fontWeight="regular"
-      >
-       한 줄 일기 어쩌고 저쩌고
-      </Text>
+
+      {/* 탭에 따라 다른 Swiper 렌더링 */}
+      {selectedTab === 0 ? (
+        // 그래프 탭: 좌우 스크롤
+        <Swiper
+          key="graph-swiper"
+          spaceBetween={0}
+          slidesPerView={1}
+          initialSlide={currentMonth}
+          onSlideChange={(swiper) => setCurrentMonth(swiper.activeIndex)}
+        >
+          {months.map((month) => (
+            <SwiperSlide key={month}>
+              <GraphView 
+                year={currentYear} 
+                month={month} 
+                data={allData} 
+                selectedDate={selectedDate}
+                onSelectDate={handleSelectDate}
+              />
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      ) : (
+        // 달력 탭: 상하 스크롤
+        <Swiper
+          key="calendar-swiper"
+          direction="vertical"
+          spaceBetween={0}
+          slidesPerView={1}
+          initialSlide={currentMonth}
+          onSlideChange={(swiper) => setCurrentMonth(swiper.activeIndex)}
+          style={{ height: '400px' }} // 세로 스크롤을 위해 높이 지정 필요
+        >
+          {months.map((month) => (
+            <SwiperSlide key={month}>
+              <CalendarView 
+                year={currentYear} 
+                month={month} 
+                data={allData} 
+                selectedDate={selectedDate}
+                onSelectDate={handleSelectDate}
+              />
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      )}
+      
+      <StatsDetailView entry={selectedEntry} selectedDate={selectedDate} />
     </>
   );
 }
