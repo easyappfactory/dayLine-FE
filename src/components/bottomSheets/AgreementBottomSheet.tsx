@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { TextButton, BottomSheet, AgreementV3 } from "@toss/tds-mobile";
 import { adaptive } from "@toss/tds-colors";
+// TODO: 백엔드 API 완성 후 주석 해제
+// import { loginWithToss, saveAuthTokens, saveUserKey } from "../../services/tossAuth";
 
 interface AgreementBottomSheetProps {
   open: boolean;
@@ -14,11 +16,42 @@ export const AgreementBottomSheet = ({
   onAgree,
 }: AgreementBottomSheetProps) => {
   const [isChecked, setIsChecked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleAgreeClick = () => {
-    if (isChecked) {
+  const handleAgreeClick = async () => {
+    if (!isChecked || isLoading) {
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // TODO: 백엔드 API 완성 후 주석 해제
+      // 토스 로그인 플로우 실행
+      // const { userInfo, tokens } = await loginWithToss();
+      // 
+      // // 토큰과 userKey 저장
+      // saveAuthTokens(tokens);
+      // if (userInfo.success?.userKey) {
+      //   saveUserKey(userInfo.success.userKey);
+      //   console.log('로그인 성공! userKey:', userInfo.success.userKey);
+      // }
+      
+      // 임시: 바로 다음 페이지로 이동
+      console.log('✅ 약관 동의 완료 (로그인 API는 백엔드 완성 후 연동)');
+      
       onAgree?.(true);
       onClose();
+    } catch (error) {
+      console.error('로그인 실패:', error);
+      
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : '로그인에 실패했습니다. 다시 시도해주세요.';
+      
+      alert(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -41,9 +74,10 @@ export const AgreementBottomSheet = ({
             }
             color="primary"
             variant="fill"
-            disabled={!isChecked}
+            disabled={!isChecked || isLoading}
+            loading={isLoading}
           >
-            동의하고 시작하기
+            {isLoading ? '로그인 중...' : '동의하고 시작하기'}
           </BottomSheet.CTA>
         </div>
       }
