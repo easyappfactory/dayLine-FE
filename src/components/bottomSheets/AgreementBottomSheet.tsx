@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { TextButton, BottomSheet, AgreementV3 } from "@toss/tds-mobile";
 import { adaptive } from "@toss/tds-colors";
-// TODO: 백엔드 API 완성 후 주석 해제
-// import { loginWithToss, saveAuthTokens, saveUserKey } from "../../services/tossAuth";
+import { loginWithToss } from "../../services/tossAuth";
 
 interface AgreementBottomSheetProps {
   open: boolean;
@@ -26,19 +25,10 @@ export const AgreementBottomSheet = ({
     setIsLoading(true);
     
     try {
-      // TODO: 백엔드 API 완성 후 주석 해제
       // 토스 로그인 플로우 실행
-      // const { userInfo, tokens } = await loginWithToss();
-      // 
-      // // 토큰과 userKey 저장
-      // saveAuthTokens(tokens);
-      // if (userInfo.success?.userKey) {
-      //   saveUserKey(userInfo.success.userKey);
-      //   console.log('로그인 성공! userKey:', userInfo.success.userKey);
-      // }
+      await loginWithToss();
       
-      // 임시: 바로 다음 페이지로 이동
-      console.log('✅ 약관 동의 완료 (로그인 API는 백엔드 완성 후 연동)');
+      console.log('로그인 및 약관 동의 완료');
       
       onAgree?.(true);
       onClose();
