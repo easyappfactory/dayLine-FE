@@ -7,7 +7,7 @@ import {
 import { getToday, formatDate } from '../utils/dateUtils';
 import { useTextInput } from '../hooks/useTextInput';
 import { analyzeDiaryText } from '../services/gpt';
-//import { saveDiary } from '../services/diary';
+import { saveDiary } from '../services/diary';
 //import { adaptive } from '@toss/tds-colors';
 
 export default function Page() {
@@ -45,15 +45,15 @@ export default function Page() {
           throw new Error('GPT 응답이 올바르지 않습니다.');
         }
         
-        // 3단계: 백엔드에 저장 (TODO: 백엔드 완성 후 활성화)
-        // console.log('백엔드 저장 요청 시작...');
-        // const dateString = formatDate(today, '-'); // YYYY-MM-DD 형식
-        // await saveDiary({
-        //   date: dateString,
-        //   content: gptResponse.line,
-        //   emotion: gptResponse.score,
-        // });
-        // console.log('백엔드 저장 성공!');
+        // 3단계: 백엔드에 저장
+        console.log('백엔드 저장 요청 시작...');
+        const dateString = formatDate(today, '-'); // YYYY-MM-DD 형식
+        await saveDiary({
+          date: dateString,
+          content: gptResponse.line,
+          emotion: gptResponse.score,
+        });
+        console.log('백엔드 저장 성공!');
         
         // 4단계: 성공 후 다음 페이지로 이동
         // 추후 전면광고 이벤트 트리거 필요

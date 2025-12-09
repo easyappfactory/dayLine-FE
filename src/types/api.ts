@@ -5,3 +5,11 @@ export interface SuccessResponse<T = void> {
   data: T | null;
 }
 
+
+
+
+
+
+
+
+

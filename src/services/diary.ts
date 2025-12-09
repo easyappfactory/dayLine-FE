@@ -3,6 +3,8 @@
 
 import { apiRequest } from './api';
 import { getUserKey } from './tossAuth';
+import type { DiaryEntry } from '../types/diary';
+import type { SuccessResponse } from '../types/api';
 
 // 백엔드 응답 DTO
 interface DiaryResDto {
@@ -11,16 +13,8 @@ interface DiaryResDto {
   date: string;      // YYYY-MM-DD
 }
 
-// 클라이언트 사용 인터페이스 (기존 호환성 유지)
-export interface DiaryEntry {
-  date: string;      // YYYY-MM-DD
-  content: string;   // line
-  emotion: number;   // score
-}
-
 // 일기 저장 요청
 interface DiaryCreateRequest {
-  userId: number;
   line: string;
   score: number;
   date: string;  // YYYY-MM-DD
@@ -40,19 +34,23 @@ export async function getMonthlyDiaries(
     throw new Error('로그인이 필요합니다.');
   }
 
-  // 백엔드 API: GET /api/v1/scores?userId={userId}&month={month}
-  const response = await apiRequest<DiaryResDto[]>(
-    `/api/v1/scores?userId=${userKey}&month=${month}`,
+  // 백엔드 API: GET /api/v1/scores?month={month}
+  // Authorization 헤더는 apiRequest 내부에서 처리됨 (user_key가 있을 경우)
+  const response = await apiRequest<SuccessResponse<DiaryResDto[]>>(
+    `/v1/scores?month=${month}`,
     {
       method: 'GET',
     }
   );
 
+  // 데이터 추출
+  const data = response.data || [];
+
   // DTO를 클라이언트 인터페이스로 변환
-  const diaries: DiaryEntry[] = response.map(dto => ({
+  const diaries: DiaryEntry[] = data.map(dto => ({
     date: dto.date,
-    content: dto.line,
-    emotion: dto.score,
+    line: dto.line,
+    score: dto.score,
   }));
 
   return diaries;
@@ -73,20 +71,21 @@ export async function getDiaryByDate(date: string): Promise<DiaryEntry | null> {
   try {
     // 날짜에서 월 추출하여 해당 월의 일기 조회
     const month = parseInt(date.split('-')[1], 10);
-    const response = await apiRequest<DiaryResDto[]>(
-      `/api/v1/scores?userId=${userKey}&month=${month}`,
+    const response = await apiRequest<SuccessResponse<DiaryResDto[]>>(
+      `/v1/scores?month=${month}`,
       {
         method: 'GET',
       }
     );
 
-    const diary = response.find(dto => dto.date === date);
+    const data = response.data || [];
+    const diary = data.find(dto => dto.date === date);
     
     if (diary) {
       return {
         date: diary.date,
-        content: diary.line,
-        emotion: diary.score,
+        line: diary.line,
+        score: diary.score,
       };
     }
     return null;
@@ -99,7 +98,7 @@ export async function getDiaryByDate(date: string): Promise<DiaryEntry | null> {
 /**
  * 일기 작성/수정
  * 
- * @param data 일기 데이터 (date, content, emotion)
+ * @param data 일기 데이터 (date, line, score)
  * @returns 저장된 일기
  */
 export async function saveDiary(data: {
@@ -114,14 +113,13 @@ export async function saveDiary(data: {
 
   // 백엔드 API: POST /api/v1/scores
   const requestBody: DiaryCreateRequest = {
-    userId: Number(userKey),
     line: data.content,
     score: data.emotion,
     date: data.date,
   };
 
-  await apiRequest<void>(
-    '/api/v1/scores',
+  await apiRequest<SuccessResponse<null>>(
+    '/v1/scores',
     {
       method: 'POST',
       headers: {
@@ -134,8 +132,8 @@ export async function saveDiary(data: {
   // 성공 응답만 오므로, 저장한 데이터를 그대로 반환
   return {
     date: data.date,
-    content: data.content,
-    emotion: data.emotion,
+    line: data.content,
+    score: data.emotion,
   };
 }
 

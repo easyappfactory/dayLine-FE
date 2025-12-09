@@ -73,8 +73,7 @@ export async function loginToBackend(
 
   try {
     // apiRequest 대신 fetch를 직접 사용하여 헤더와 바디 모두 검사
-    // TODO: 실제 백엔드 엔드포인트로 변경 필요 (현재: /api/auth/login)
-    const response = await fetch('/api/auth/login', {
+    const response = await fetch('/api/v1/auth/toss/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -83,17 +82,39 @@ export async function loginToBackend(
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || '로그인에 실패했습니다.');
+      const errorText = await response.text();
+      // [DEBUG] 백엔드 에러 내용 확인 (테스트 후 삭제 필요)
+      // alert(`[Step 2 실패] 백엔드 응답 에러 (${response.status})\n${errorText.slice(0, 100)}`);
+      
+      let message = '로그인에 실패했습니다.';
+      try {
+        const errorData = JSON.parse(errorText || '{}');
+        message = errorData.message || message;
+      } catch {
+        // JSON 파싱 실패 시 (예: "Invalid CORS request" 텍스트만 온 경우)
+        if (errorText) message = errorText;
+      }
+      throw new Error(message);
     }
 
     // 1. JSON Body 파싱 시도
-    const body: SuccessResponse<TossLoginData> = await response.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body: SuccessResponse<any> | any = await response.json();
 
-    // Case 1: Body에 userKey가 있는 경우 (팀에서 정의한 규칙에 따라 가드 체크용)
-    if (body.success && typeof body.data === 'number') {
-      console.log('[Step 2] Body에서 userKey 획득:', body.data);
-      return body.data;
+    console.log('[DEBUG] 백엔드 응답 Body:', body);
+
+    // Case 1: Body에서 userKey 찾기
+    // 백엔드 응답이 숫자형 userKey를 그대로 줄 수도 있고, 객체 안에 있을 수도 있음
+    let userKeyFromBody = body.data?.userKey || body.userKey || body.data;
+
+    // 만약 body 자체가 숫자라면 (예: 456643352)
+    if (typeof body === 'number') {
+        userKeyFromBody = body;
+    }
+
+    if (typeof userKeyFromBody === 'number') {
+      console.log('[Step 2] Body에서 userKey 획득:', userKeyFromBody);
+      return userKeyFromBody;
     }
 
     // Case 2: Header에서 확인 (Authorization 또는 X-User-Key)
@@ -137,6 +158,9 @@ export async function loginWithToss() {
     // 1. 인가 코드 획득
     const { authorizationCode, referrer } = await getTossAuthorizationCode();
     
+    // [DEBUG] 모바일 디버깅용 알림 (테스트 후 삭제 필요)
+    // alert(`[Step 1 성공] 인가코드 획득\nCode: ${authorizationCode.slice(0, 10)}...\nReferrer: ${referrer}`);
+
     // 2. 백엔드 로그인
     const userKey = await loginToBackend(authorizationCode, referrer);
     
