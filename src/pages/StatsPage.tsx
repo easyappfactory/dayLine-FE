@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Tab, ListHeader, Text, Asset, Button } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -11,8 +12,12 @@ import type { DiaryEntry } from '../types/diary';
 import { useMonthlyDiaries } from '../hooks/useDiaryData';
 
 export default function Page() {
+  const location = useLocation();
+  // state로 넘어온 skipComplete가 true이면 완료 화면을 건너뜀
+  const skipComplete = location.state?.skipComplete || false;
+
   // true면 완료 화면, false면 통계 화면을 보여줍니다.
-  const [showComplete, setShowComplete] = useState(true);
+  const [showComplete, setShowComplete] = useState(!skipComplete);
   const [selectedTab, setSelectedTab] = useState(0); // 0: 그래프, 1: 달력
   
   // 현재 보여줄 년월
