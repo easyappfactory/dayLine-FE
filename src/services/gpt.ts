@@ -48,10 +48,6 @@ export async function analyzeDiaryText(text: string): Promise<DiaryAnalysisRespo
             schema: {
               type: 'object',
               properties: {
-                line: {
-                  type: 'string',
-                  description: '사용자가 입력한 일기 내용',
-                },
                 score: {
                   type: 'integer',
                   minimum: 0,
@@ -59,7 +55,7 @@ export async function analyzeDiaryText(text: string): Promise<DiaryAnalysisRespo
                   description: '감정 점수 (0-100)',
                 },
               },
-              required: ['line', 'score'],
+              required: ['score'],
               additionalProperties: false,
             },
           },
@@ -82,9 +78,13 @@ export async function analyzeDiaryText(text: string): Promise<DiaryAnalysisRespo
     }
 
     // JSON 파싱
-    const result: DiaryAnalysisResponse = JSON.parse(content);
+    const result: { score: number } = JSON.parse(content);
     
-    return result;
+    // GPT 응답에는 score만 있으므로, line은 사용자가 입력한 원본 텍스트 사용
+    return {
+      line: text,
+      score: result.score,
+    };
   } catch (error) {
     console.error('GPT API 호출 실패:', error);
     throw error;
