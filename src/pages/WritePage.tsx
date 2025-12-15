@@ -19,6 +19,7 @@ export default function Page() {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [isAdSheetOpen, setIsAdSheetOpen] = useState(false);
+  //const adLoadedRef = useRef(false);
   
   const {
     value,
@@ -51,18 +52,30 @@ export default function Page() {
   
   // 광고 로드
   useEffect(() => {
-    GoogleAdMob.loadAdMobInterstitialAd({
+    // 오늘 일기를 이미 작성했다면 광고 로드하지 않음
+    if (hasTodayDiary) return;
+
+    // 지원되지 않는 환경(샌드박스 등)에서는 알림 표시
+    // 로그인 시점이 아니라, 실제로 광고를 '보여줘야 할 때' 알림을 띄우는 것이 좋으므로
+    // 여기서는 로드만 시도하고 알림은 주석 처리하거나 제거합니다.
+    if (GoogleAdMob.loadAppsInTossAdMob.isSupported() !== true) {
+      // alert('현재 환경(샌드박스 등)에서는 광고가 표시되지 않아요.\n 실제 앱에서는 정상적으로 전면 광고가 표시돼요.');
+      return;
+    }
+
+    // [수정] loadAppsInTossAdMob 사용 및 adGroupId 파라미터 사용
+    GoogleAdMob.loadAppsInTossAdMob({
       options: {
-        adUnitId: 'ait-ad-test-interstitial-id'
+        adGroupId: 'ait-ad-test-interstitial-id'
       },
       onEvent: (event) => {
         console.log('광고 이벤트:', event.type);
       },
       onError: (error) => {
-        console.error('광고 로드 실패:', error);
+        alert('광고 로드 실패:' + error.message);
       }
     });
-  }, []);
+  }, [hasTodayDiary]);
 
   const handleConfirm = async () => {
     // 이미 작성된 경우 StatsPage로 이동
@@ -83,25 +96,55 @@ export default function Page() {
     setIsAdSheetOpen(false);
 
     try {
-      setIsLoading(true);
-      
+      // 광고가 뜨는 동안 로딩 화면이 가리지 않도록, 로딩 상태 설정을 광고 이후로 미룹니다.
+      // setIsLoading(true); 
+
       // 광고 표시 Promise
       const showAdPromise = new Promise<void>((resolve) => {
-        GoogleAdMob.showAdMobInterstitialAd({
-          options: {
-            adUnitId: 'ait-ad-test-interstitial-id'
-          },
-          onEvent: (event) => {
-            if (event.type === 'dismissed' || event.type === 'failedToShow') {
-              resolve();
+        // [수정] 지원되지 않는 환경이면 바로 통과
+        if (GoogleAdMob.showAppsInTossAdMob.isSupported() !== true) {
+          alert('현재 환경(샌드박스 등)에서는 광고가 표시되지 않아요.\n실제 앱에서는 정상적으로 전면 광고가 표시돼요.');
+          resolve();
+          return;
+        }
+
+        // 타임아웃 설정 (3초)
+        const timeoutId = setTimeout(() => {
+          console.warn('광고 응답 시간 초과: 강제 진행');
+          resolve();
+        }, 3000);
+
+        try {
+          // [수정] showAppsInTossAdMob 사용
+          GoogleAdMob.showAppsInTossAdMob({
+            options: {
+              adGroupId: 'ait-ad-test-interstitial-id'
+            },
+            onEvent: (event) => {
+              if (event.type === 'dismissed' || event.type === 'failedToShow') {
+                clearTimeout(timeoutId);
+                resolve();
+              }
+            },
+            onError: (error) => {
+              console.error('광고 표시 실패:', error);
+              // alert 제거 (개발 편의성)
+              clearTimeout(timeoutId);
+              resolve(); // 에러 발생 시에도 진행
             }
-          },
-          onError: (error) => {
-            console.error('광고 표시 실패:', error);
-            resolve(); // 에러 발생 시에도 진행
-          }
-        });
+          });
+        } catch (error) {
+          console.error('광고 호출 중 에러:', error);
+          clearTimeout(timeoutId);
+          resolve();
+        }
       });
+
+      // [수정] 광고가 닫힐 때까지 대기 (이 동안은 로딩 오버레이 없이 기존 화면 유지)
+      await showAdPromise;
+
+      // [수정] 광고 종료 후 로딩 표시 및 데이터 분석 시작
+      setIsLoading(true);
       
       // 데이터 처리 Promise
       const dataPromise = (async () => {
@@ -133,8 +176,8 @@ export default function Page() {
       // Unhandled Rejection 방지를 위해 catch 처리
       const safeDataPromise = dataPromise.catch(err => ({ error: err }));
 
-      // 광고가 닫힐 때까지 대기
-      await showAdPromise;
+      // [수정] 위에서 이미 광고 대기를 마쳤으므로 여기서는 await showAdPromise 제거
+      // await showAdPromise;
       
       // 데이터 처리 결과 확인
       const result = await safeDataPromise;
