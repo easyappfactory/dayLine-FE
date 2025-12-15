@@ -7,7 +7,7 @@ import {
   Button,
 } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
-import { useLogin } from '../hooks/useLogin';
+import { useLogin } from '../hooks/domain/auth/useLogin';
 
 export default function Page() {
   const { handleLogin, isLoading } = useLogin();

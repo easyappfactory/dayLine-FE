@@ -9,7 +9,7 @@ import { CalendarView } from '../components/stats/CalendarView';
 import { GraphView } from '../components/stats/GraphView';
 import { StatsDetailView } from '../components/stats/StatsDetailView';
 import type { DiaryEntry } from '../types/diary';
-import { useMonthlyDiaries } from '../hooks/useDiaryData';
+import { useMonthlyDiaries } from '../hooks/domain/diary/useDiaryData';
 
 export default function Page() {
   const location = useLocation();
