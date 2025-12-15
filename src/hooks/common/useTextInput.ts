@@ -4,8 +4,8 @@ import {
   getCharacterCountDisplay, 
   trimText,
   TEXT_VALIDATION 
-} from '../utils/textValidation';
-import type { ValidationResult } from '../utils/textValidation';
+} from '../../utils/textValidation';
+import type { ValidationResult } from '../../utils/textValidation';
 
 interface UseTextInputReturn {
   value: string;

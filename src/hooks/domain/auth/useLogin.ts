@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginWithToss } from '../services/tossAuth';
+import { loginWithToss } from '../../../services/tossAuth';
 
 export const useLogin = () => {
   const navigate = useNavigate();

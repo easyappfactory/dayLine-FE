@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getMonthlyDiaries, saveDiary } from '../services/diary';
-import { formatDate } from '../utils/dateUtils';
-import type { DiaryEntry } from '../types/diary';
+import { getMonthlyDiaries, saveDiary } from '../../../services/diary';
+import { formatDate } from '../../../utils/dateUtils';
+import type { DiaryEntry } from '../../../types/diary';
 
 // React Query 키 관리
 export const DIARY_KEYS = {
@@ -64,5 +64,3 @@ export const useSaveDiary = () => {
   });
 };
 
-// 하위 호환성을 위해 기존 함수 이름들과 비슷한 헬퍼 제공 (선택 사항)
-// 하지만 StatsPage를 리팩토링할 것이므로 굳이 만들지 않음.
