@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { TextButton, BottomSheet, AgreementV3 } from "@toss/tds-mobile";
 import { adaptive } from "@toss/tds-colors";
+import { loginWithToss } from "../../services/tossAuth";
 
 interface AgreementBottomSheetProps {
   open: boolean;
@@ -14,11 +15,33 @@ export const AgreementBottomSheet = ({
   onAgree,
 }: AgreementBottomSheetProps) => {
   const [isChecked, setIsChecked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleAgreeClick = () => {
-    if (isChecked) {
+  const handleAgreeClick = async () => {
+    if (!isChecked || isLoading) {
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // 토스 로그인 플로우 실행
+      await loginWithToss();
+      
+      console.log('로그인 및 약관 동의 완료');
+      
       onAgree?.(true);
       onClose();
+    } catch (error) {
+      console.error('로그인 실패:', error);
+      
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : '로그인에 실패했어요. 다시 시도해주세요.';
+      
+      alert(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -41,9 +64,10 @@ export const AgreementBottomSheet = ({
             }
             color="primary"
             variant="fill"
-            disabled={!isChecked}
+            disabled={!isChecked || isLoading}
+            loading={isLoading}
           >
-            동의하고 시작하기
+            {isLoading ? '로그인 중...' : '동의하고 시작하기'}
           </BottomSheet.CTA>
         </div>
       }

@@ -24,4 +24,7 @@ dist-ssr
 *.sw?
 
 .env
+.env.development
+.env.remote
+.env.production
 .granite

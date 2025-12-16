@@ -1,47 +1,89 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  TextField,
-  Button,
-} from '@toss/tds-mobile';
-import { getToday, formatDate } from '../utils/dateUtils';
-//import { adaptive } from '@toss/tds-colors';
+import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useTextInput } from '../hooks/common/useTextInput';
+import { useHasTodayDiary, DIARY_KEYS } from '../hooks/domain/diary/useDiaryData';
+import { AdPromotionBottomSheet } from '../components/bottomSheets/AdPromotionBottomSheet';
+import { LoadingOverlay } from '../components/common/LoadingOverlay';
+import { DiaryInputForm } from '../components/write/DiaryInputForm';
+import { useDiarySubmit } from '../hooks/domain/diary/useDiarySubmit';
 
 export default function Page() {
-  const [value, setValue] = useState('');
-  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isAdSheetOpen, setIsAdSheetOpen] = useState(false);
   
-  // 오늘 날짜 가져오기
-  const today = getToday();
-  const formattedDate = formatDate(today);
+  // 1. 텍스트 입력 로직
+  const {
+    value,
+    trimmedValue,
+    characterCount,
+    hasError,
+    errorMessage,
+    isSubmittable,
+    handleChange,
+  } = useTextInput();
   
-  const handleConfirm = () => {
-    if (value.trim()) {
-      navigate('/stats');
-      //추후 전면광고 이벤트 트리거 필요 
+  // 2. 일기 데이터 조회 로직
+  const { hasTodayDiary, isLoading: isChecking } = useHasTodayDiary();
+  
+  // 3. 일기 제출 로직 (Hooks로 분리됨)
+  const { 
+    isLoading: isSubmitting, 
+    handleSubmit, 
+    formattedDate,
+    today
+  } = useDiarySubmit({ 
+    trimmedValue, 
+    hasTodayDiary: !!hasTodayDiary 
+  });
+
+  // 페이지 진입 시 데이터 갱신
+  useEffect(() => {
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    queryClient.invalidateQueries({ 
+      queryKey: DIARY_KEYS.monthly(year, month) 
+    });
+  }, [queryClient, today]);
+  
+  // 작성하기 버튼 핸들러
+  const handleConfirm = async () => {
+    // 이미 작성된 경우 제출 프로세스로 넘겨서(Hooks 내부) 바로 이동 처리
+    if (hasTodayDiary) {
+      handleSubmit();
+      return;
+    }
+
+    if (isSubmittable && !isSubmitting) {
+      setIsAdSheetOpen(true);
     }
   };
-  
+
   return (
-    <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {/* 숫자키패드 사용을 위해서는 type="number" 대신 inputMode="numeric"를 사용해주세요. */}
-      <TextField.Clearable
-        variant="box"
-        hasError={false}
-        label={`${formattedDate} 한 줄`}
-        labelOption="sustain"
+    <>
+      <LoadingOverlay isVisible={isSubmitting} />
+
+      <DiaryInputForm
+        dateText={formattedDate}
         value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="50자 이내로 입력"
-        style={{ textAlign: 'left' }}
+        onChange={handleChange}
+        hasError={hasError}
+        errorMessage={errorMessage}
+        characterCount={characterCount}
+        hasTodayDiary={hasTodayDiary}
+        isSubmittable={isSubmittable}
+        isLoading={isSubmitting}
+        isChecking={isChecking}
+        onSubmit={handleConfirm}
       />
-      <Button 
-        display="block" 
-        disabled={!value.trim()} 
-        onClick={handleConfirm}
-      >
-        확인
-      </Button>
-    </div>
+
+      <AdPromotionBottomSheet
+        open={isAdSheetOpen}
+        onClose={() => setIsAdSheetOpen(false)}
+        onNavigate={() => {
+          setIsAdSheetOpen(false);
+          handleSubmit();
+        }}
+      />
+    </>
   );
 }

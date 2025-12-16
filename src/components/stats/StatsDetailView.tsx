@@ -10,12 +10,12 @@ interface StatsDetailViewProps {
 export const StatsDetailView = ({ entry, selectedDate }: StatsDetailViewProps) => {
   if (!entry) {
     return (
-      <div style={{ padding: '0 24px', marginTop: '24px', textAlign: 'center' }}>
+      <div style={{ padding: '0 24px', marginTop: '24px'}}>
          <Text
           typography="t5"
           color={adaptive.grey500}
         >
-          기록된 일기가 없습니다.
+          한 줄 일기가 없습니다.
         </Text>
       </div>
     );
@@ -25,7 +25,7 @@ export const StatsDetailView = ({ entry, selectedDate }: StatsDetailViewProps) =
   const formattedDate = selectedDate.replace(/-/g, '.');
 
   return (
-    <div style={{ padding: '0 24px' }}>
+    <div>
       <ListHeader
         title={
           <ListHeader.TitleParagraph
@@ -40,7 +40,7 @@ export const StatsDetailView = ({ entry, selectedDate }: StatsDetailViewProps) =
         style={{ padding: '24px 0 16px' }}
       />
       
-      <div style={{ marginBottom: '16px', display: 'flex' }}>
+      <div style={{ marginBottom: '16px', display: 'flex' , padding: '0 24px'}}>
         {/* Badge 컴포넌트가 예상대로 렌더링되지 않는 경우를 대비한 스타일 오버라이드 */}
         <div style={{ 
           backgroundColor: colors.blue100, 

@@ -2,9 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { TDSMobileAITProvider } from '@toss/tds-mobile-ait'
 import { ThemeProvider } from '@toss/tds-mobile'
 import IntroPage from './pages/IntroPage'
-import LoginPage from './pages/LoginPage'
 import WritePage from './pages/WritePage'
-import AdPage from './pages/AdPage'
 import StatsPage from './pages/StatsPage'
 import './App.css'
 
@@ -18,9 +16,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<IntroPage />} />
-          <Route path="/login" element={<LoginPage />} />
           <Route path="/write" element={<WritePage />} />
-          <Route path="/ad" element={<AdPage />} />
           <Route path="/stats" element={<StatsPage />} />
         </Routes>
       </BrowserRouter>

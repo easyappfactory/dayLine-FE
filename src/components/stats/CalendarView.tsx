@@ -34,7 +34,7 @@ export const CalendarView = ({ year, month, data, selectedDate, onSelectDate }: 
   };
 
   return (
-    <div style={{ padding: '16px' }}>
+    <div style={{ padding: '16px', marginTop: '8px'}}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: '16px' }}>
         {weekDays.map(day => (
           <Text key={day} typography="t6" color={adaptive.grey500} textAlign="center">

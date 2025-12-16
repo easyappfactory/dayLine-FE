@@ -12,18 +12,23 @@ export const AdPromotionBottomSheet = ({
   onNavigate,
 }: AdPromotionBottomSheetProps) => {
   return (
-    <BottomSheet
+    <BottomSheet style={{ backgroundColor: "#fff" }}
       header={
         <BottomSheet.Header>
-          광고를 보면 기록을 저장하고 그래프를 확인할 수 있어요
+          광고를 보는 동안 AI가 감정을 분석해요
         </BottomSheet.Header>
       }
+      headerDescription={
+      <BottomSheet.HeaderDescription>
+        작성한 일기는 수정하거나 삭제할 수 없어요
+        </BottomSheet.HeaderDescription>
+        }
       open={open}
       onClose={onClose}
       cta={
         <BottomSheet.DoubleCTA
           leftButton={
-            <Button color="dark" variant="weak" onClick={onClose}>
+            <Button variant="weak" onClick={onClose}>
               닫기
             </Button>
           }
@@ -39,8 +44,9 @@ export const AdPromotionBottomSheet = ({
           alignItems: `center`,
         }}
       >
+        {/* <Post.Paragraph>저는 BottomSheet 내용이에요</Post.Paragraph> */}
         <Asset.Image
-          frameShape={{ width: 250 }}
+          frameShape={{ width: 200 }}
           src="https://static.toss.im/ml-product/tosst-inapp_h7gz099ss0c8g8d32ydsfd81.png"
           aria-hidden={true}
         />
@@ -48,6 +54,7 @@ export const AdPromotionBottomSheet = ({
     </BottomSheet>
   );
 };
+
 
 
 

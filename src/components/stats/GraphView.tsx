@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { Text } from '@toss/tds-mobile';
 import { adaptive, colors } from '@toss/tds-colors';
 import type { DiaryEntry } from '../../types/diary';
 import { getDaysInMonth, isSameMonth } from '../../utils/dateUtils';
@@ -22,17 +21,9 @@ export const GraphView = ({ year, month, data, selectedDate, onSelectDate }: Gra
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [data, year, month]);
 
-  if (monthlyData.length === 0) {
-    return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <Text typography="t5" color={adaptive.grey500}>데이터가 없습니다.</Text>
-      </div>
-    );
-  }
-
   // 그래프 그리기 상수
   const padding = 20;
-  const height = 200;
+  const height = 320; // CalendarView의 높이에 맞춤 (250px - 32px padding)
   const width = 300; // SVG viewBox width
   
   // 좌표 계산

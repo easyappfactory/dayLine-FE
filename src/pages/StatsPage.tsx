@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Tab, ListHeader, Text, Asset, Button } from '@toss/tds-mobile';
 import { adaptive } from '@toss/tds-colors';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -8,39 +9,49 @@ import { CalendarView } from '../components/stats/CalendarView';
 import { GraphView } from '../components/stats/GraphView';
 import { StatsDetailView } from '../components/stats/StatsDetailView';
 import type { DiaryEntry } from '../types/diary';
-import { useDiaryData } from '../hooks/useDiaryData';
+import { useMonthlyDiaries } from '../hooks/domain/diary/useDiaryData';
 
 export default function Page() {
-  const { getAllData, getRecentEntry, getEntryByDate } = useDiaryData();
-  const allData = getAllData();
+  const location = useLocation();
+  // state로 넘어온 skipComplete가 true이면 완료 화면을 건너뜀
+  const skipComplete = location.state?.skipComplete || false;
 
   // true면 완료 화면, false면 통계 화면을 보여줍니다.
-  const [showComplete, setShowComplete] = useState(true);
+  const [showComplete, setShowComplete] = useState(!skipComplete);
   const [selectedTab, setSelectedTab] = useState(0); // 0: 그래프, 1: 달력
   
-  // 현재 보여줄 년월 (초기값 2025년 11월, index 10)
-  const currentYear = 2025;
-  const [currentMonth, setCurrentMonth] = useState(10); // 0-based index (11월)
+  // 현재 보여줄 년월
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth()); // 0-based index
 
-  // 2025년 1월 ~ 12월 (0 ~ 11)
+  // 1월 ~ 12월 (0 ~ 11)
   const months = Array.from({ length: 12 }, (_, i) => i);
 
+  // 백엔드 API로 받아온 월별 데이터 (React Query)
+  const { data: monthlyData = [] } = useMonthlyDiaries(currentYear, currentMonth);
+
   // 선택된 날짜 (YYYY-MM-DD)
-  // 초기값으로 가장 최근 데이터 설정
-  const [selectedDate, setSelectedDate] = useState<string>(() => {
-    const recentEntry = getRecentEntry(2025, 10);
-    return recentEntry ? recentEntry.date : '';
-  });
+  const [selectedDate, setSelectedDate] = useState<string>('');
   
-  const [selectedEntry, setSelectedEntry] = useState<DiaryEntry | null>(() => {
-    return getEntryByDate(selectedDate);
-  });
+  // 선택된 날짜의 일기 데이터
+  const selectedEntry: DiaryEntry | null = monthlyData.find(d => d.date === selectedDate) || null;
+
+  // 데이터 로드 시 초기 선택 날짜 설정 (가장 최근 데이터)
+  useEffect(() => {
+    if (monthlyData.length > 0 && !selectedDate) {
+      // 날짜 내림차순 정렬 후 첫 번째
+      const sorted = [...monthlyData].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      if (sorted.length > 0) {
+        // eslint-disable-next-line
+        setSelectedDate(sorted[0].date);
+      }
+    }
+  }, [monthlyData, selectedDate]);
 
   // 날짜 선택 핸들러
   const handleSelectDate = (date: string) => {
     setSelectedDate(date);
-    const entry = getEntryByDate(date);
-    setSelectedEntry(entry);
   };
 
   // 1. 완료 화면 렌더링 (showComplete가 true일 때)
@@ -50,7 +61,7 @@ export default function Page() {
         display: 'flex', 
         flexDirection: 'column', 
         alignItems: 'center', 
-        justifyContent: 'center',
+        justifyContent: 'center', 
         minHeight: '60vh',
         padding: '24px',
         gap: '16px'
@@ -91,33 +102,45 @@ export default function Page() {
 
   // 2. 통계 화면 렌더링 (showComplete가 false일 때)
   return (
-    <>
-      <Tab
-        fluid={false}
-        size="large"
-        style={{ backgroundColor: adaptive.background }}
-        onChange={(index) => setSelectedTab(index)}
-      >
-        <Tab.Item key="0-그래프" selected={selectedTab === 0}>
-          그래프
-        </Tab.Item>
-        <Tab.Item key="1-달력" selected={selectedTab === 1}>
-          달력
-        </Tab.Item>
-      </Tab>
+    <div>
+      <div style={{ flexShrink: 0 }}>
+        <Tab
+          fluid={false}
+          size="large"
+          onChange={(index) => setSelectedTab(index)}
+        >
+          <Tab.Item selected={selectedTab === 0}>
+            그래프
+          </Tab.Item>
+          <Tab.Item selected={selectedTab === 1}>
+            달력
+          </Tab.Item>
+        </Tab>
+      </div>
 
-      <ListHeader
-        title={
-          <ListHeader.TitleParagraph
-            color={adaptive.grey800}
-            fontWeight="bold"
-            typography="t5"
-          >
-            {currentYear}.{currentMonth + 1} 한 줄 
-          </ListHeader.TitleParagraph>
-        }
-        descriptionPosition="bottom"
-      />
+      {/* 탭 하단 구분선 - 스타일 명확화 */}
+      <div style={{ 
+        height: '1px', 
+        backgroundColor: '#e5e8eb', // adaptive.grey200과 유사한 명시적 색상 (안전장치)
+        width: '100%',
+        minHeight: '1px' // 최소 높이 보장
+      }} />
+
+      <div>
+        <ListHeader 
+          title={
+            <ListHeader.TitleParagraph
+              color={adaptive.grey800}
+              fontWeight="bold"
+              typography="t5"
+            >
+              {currentYear}.{currentMonth + 1}월 한 줄 
+            </ListHeader.TitleParagraph>
+          }
+          descriptionPosition="bottom"
+          style={{ padding: '36px 0 8px' }}
+        />
+      </div>
 
       {/* 탭에 따라 다른 Swiper 렌더링 */}
       {selectedTab === 0 ? (
@@ -128,13 +151,14 @@ export default function Page() {
           slidesPerView={1}
           initialSlide={currentMonth}
           onSlideChange={(swiper) => setCurrentMonth(swiper.activeIndex)}
+          style={{ height: '350px' }} // 달력 탭과 동일한 높이 지정
         >
           {months.map((month) => (
             <SwiperSlide key={month}>
               <GraphView 
                 year={currentYear} 
                 month={month} 
-                data={allData} 
+                data={month === currentMonth ? monthlyData : []} // 현재 월 데이터만 전달
                 selectedDate={selectedDate}
                 onSelectDate={handleSelectDate}
               />
@@ -150,14 +174,14 @@ export default function Page() {
           slidesPerView={1}
           initialSlide={currentMonth}
           onSlideChange={(swiper) => setCurrentMonth(swiper.activeIndex)}
-          style={{ height: '400px' }} // 세로 스크롤을 위해 높이 지정 필요
+          style={{ height: '350px' }} // 세로 스크롤을 위해 높이 지정 필요
         >
           {months.map((month) => (
             <SwiperSlide key={month}>
               <CalendarView 
                 year={currentYear} 
                 month={month} 
-                data={allData} 
+                data={month === currentMonth ? monthlyData : []} // 현재 월 데이터만 전달
                 selectedDate={selectedDate}
                 onSelectDate={handleSelectDate}
               />
@@ -167,6 +191,6 @@ export default function Page() {
       )}
       
       <StatsDetailView entry={selectedEntry} selectedDate={selectedDate} />
-    </>
+    </div>
   );
 }
