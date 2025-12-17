@@ -1,5 +1,5 @@
-import { ListHeader, Text } from '@toss/tds-mobile';
-import { adaptive, colors } from '@toss/tds-colors';
+import { ListHeader, Text, Badge } from '@toss/tds-mobile';
+import { adaptive } from '@toss/tds-colors';
 import type { DiaryEntry } from '../../types/diary';
 
 interface StatsDetailViewProps {
@@ -31,7 +31,7 @@ export const StatsDetailView = ({ entry, selectedDate }: StatsDetailViewProps) =
           <ListHeader.TitleParagraph
             color={adaptive.grey800}
             fontWeight="bold"
-            typography="t4"
+            typography="t5"
           >
             {formattedDate} 한 줄
           </ListHeader.TitleParagraph>
@@ -41,18 +41,9 @@ export const StatsDetailView = ({ entry, selectedDate }: StatsDetailViewProps) =
       />
       
       <div style={{ marginBottom: '16px', display: 'flex' , padding: '0 24px'}}>
-        {/* Badge 컴포넌트가 예상대로 렌더링되지 않는 경우를 대비한 스타일 오버라이드 */}
-        <div style={{ 
-          backgroundColor: colors.blue100, 
-          borderRadius: '6px',
-          padding: '4px 8px',
-          display: 'inline-flex',
-          alignItems: 'center',
-        }}>
-          <Text typography="t6" fontWeight="medium" color={colors.blue500}>
-            + {entry.score}
-          </Text>
-        </div>
+        <Badge variant="weak" color="blue" size="medium">
+          + {entry.score}
+        </Badge>
       </div>
 
       <Text
