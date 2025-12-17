@@ -15,7 +15,7 @@ export default function Page() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       <Post.H2 paddingBottom={24} color={adaptive.grey800} aria-label="앱 설명">
       <div style={{ whiteSpace: 'nowrap' }}>
-        <Paragraph.Text>하루 한 줄로 감정을 돌아보세요</Paragraph.Text>
+        <Paragraph.Text>오늘 한 줄로 감정을 돌아보세요</Paragraph.Text>
       </div>
       </Post.H2>
       <div>
@@ -71,7 +71,7 @@ export default function Page() {
               />
             </div>
           }
-          hideLine={false}
+          hideLine={true}
         />
         </Stepper>
       </div>

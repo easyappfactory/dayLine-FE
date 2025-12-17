@@ -119,12 +119,12 @@ export default function Page() {
       </div>
 
       {/* 탭 하단 구분선 - 스타일 명확화 */}
-      <div style={{ 
+      {/* <div style={{ 
         height: '1px', 
         backgroundColor: '#e5e8eb', // adaptive.grey200과 유사한 명시적 색상 (안전장치)
         width: '100%',
         minHeight: '1px' // 최소 높이 보장
-      }} />
+      }} /> */}
 
       <div>
         <ListHeader 

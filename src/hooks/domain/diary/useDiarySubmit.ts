@@ -20,7 +20,7 @@ export const useDiarySubmit = ({ trimmedValue, hasTodayDiary }: UseDiarySubmitPr
 
   // 광고 훅 사용
   const { showAd } = useAdMob({
-    adGroupId: 'ait-ad-test-interstitial-id',
+    adGroupId: 'ait.v2.live.8be900a4b263458c',
     shouldLoad: !hasTodayDiary // 이미 작성했다면 광고 로드 안 함
   });
 

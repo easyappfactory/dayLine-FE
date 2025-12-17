@@ -76,18 +76,27 @@ export async function loginToBackend(
     // Response 헤더를 확인하기 위해 fetch를 직접 사용
     // apiRequest는 헤더 접근이 제한되므로 여기서는 fetch 직접 사용 유지
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/dayline/api';
-    const response = await fetch(`${API_BASE_URL}/v1/auth/toss/login`, {
+    const fullUrl = `${API_BASE_URL}/v1/auth/toss/login`;
+    
+    // [디버깅] 요청 정보 확인
+    // alert(`[백엔드 요청 시작]\nURL: ${fullUrl}\nMethod: POST\nReferrer: ${referrer}`);
+    
+    const response = await fetch(fullUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestBody),
     });
+    
+    // [디버깅] 응답 상태 확인
+    // alert(`[백엔드 응답]\nStatus: ${response.status}\nStatusText: ${response.statusText}\nOK: ${response.ok}`);
 
     if (!response.ok) {
       const errorText = await response.text();
-      // [DEBUG] 백엔드 에러 내용 확인 (테스트 후 삭제 필요)
-      // alert(`[Step 2 실패] 백엔드 응답 에러 (${response.status})\n${errorText.slice(0, 100)}`);
+      
+      // [디버깅] 백엔드 에러 내용 확인
+      // alert(`[백엔드 에러]\nStatus: ${response.status}\nError: ${errorText.slice(0, 200)}`);
       
       let message = '로그인에 실패했습니다.';
       try {
@@ -147,6 +156,14 @@ export async function loginToBackend(
     
   } catch (error) {
     console.error('[Step 2] 로그인 API 요청 실패:', error);
+    
+    // [디버깅] Fetch 에러 상세 정보
+    // if (error instanceof TypeError) {
+    //   alert(`[Fetch 에러]\nTypeError: ${error.message}\n\n네트워크 연결 실패 또는 CORS 문제일 수 있습니다.`);
+    // } else if (error instanceof Error) {
+    //   alert(`[에러 상세]\nName: ${error.name}\nMessage: ${error.message}`);
+    // }
+    
     throw error;
   }
 }
@@ -159,22 +176,31 @@ export async function loginWithToss() {
   
   try {
     // 1. 인가 코드 획득
+    // alert('[Step 1] 인가 코드 받기 시작...');
     const { authorizationCode, referrer } = await getTossAuthorizationCode();
     
-    // [DEBUG] 모바일 디버깅용 알림 (테스트 후 삭제 필요)
-    // alert(`[Step 1 성공] 인가코드 획득\nCode: ${authorizationCode.slice(0, 10)}...\nReferrer: ${referrer}`);
+    // [디버깅] 인가 코드 획득 성공
+    // alert(`[Step 1 성공]\nCode: ${authorizationCode.slice(0, 20)}...\nReferrer: ${referrer}`);
 
     // 2. 백엔드 로그인
+    // alert('[Step 2] 백엔드 로그인 시작...');
     const userKey = await loginToBackend(authorizationCode, referrer);
     
     // 3. UserKey 저장
     saveUserKey(userKey);
     console.log('UserKey 저장 완료:', userKey);
 
+    // alert(`[로그인 성공!]\nUserKey: ${userKey}`);
     console.log('로그인 완료!');
     return userKey;
   } catch (error) {
-    console.error('로로그인 프로세스 중단:', error);
+    console.error('로그인 프로세스 중단:', error);
+    
+    // [디버깅] 로그인 플로우 실패
+    // if (error instanceof Error) {
+    //   alert(`[로그인 플로우 실패]\n${error.message}`);
+    // }
+    
     throw error;
   }
 }
