@@ -11,6 +11,7 @@ interface DiaryResDto {
   line: string;      // 일기 내용
   score: number;     // 감정 점수
   date: string;      // YYYY-MM-DD
+  description?: string; // GPT 분석 및 응원 메시지
 }
 
 // 일기 저장 요청
@@ -18,6 +19,7 @@ interface DiaryCreateRequest {
   line: string;
   score: number;
   date: string;  // YYYY-MM-DD
+  description?: string; // GPT 분석 및 응원 메시지
 }
 
 /**
@@ -51,6 +53,7 @@ export async function getMonthlyDiaries(
     date: dto.date,
     line: dto.line,
     score: dto.score,
+    description: dto.description,
   }));
 
   return diaries;
@@ -86,6 +89,7 @@ export async function getDiaryByDate(date: string): Promise<DiaryEntry | null> {
         date: diary.date,
         line: diary.line,
         score: diary.score,
+        description: diary.description,
       };
     }
     return null;
@@ -98,13 +102,14 @@ export async function getDiaryByDate(date: string): Promise<DiaryEntry | null> {
 /**
  * 일기 작성/수정
  * 
- * @param data 일기 데이터 (date, line, score)
+ * @param data 일기 데이터 (date, line, score, description)
  * @returns 저장된 일기
  */
 export async function saveDiary(data: {
   date: string;
   content: string;
   emotion: number;
+  description?: string;
 }): Promise<DiaryEntry> {
   const userKey = getUserKey();
   if (!userKey) {
@@ -116,6 +121,7 @@ export async function saveDiary(data: {
     line: data.content,
     score: data.emotion,
     date: data.date,
+    description: data.description,
   };
 
   await apiRequest<SuccessResponse<null>>(
@@ -134,6 +140,7 @@ export async function saveDiary(data: {
     date: data.date,
     line: data.content,
     score: data.emotion,
+    description: data.description,
   };
 }
 

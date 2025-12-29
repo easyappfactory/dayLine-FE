@@ -51,12 +51,13 @@ export const useDiarySubmit = ({ trimmedValue, hasTodayDiary }: UseDiarySubmitPr
           throw new Error('GPT 응답이 올바르지 않습니다.');
         }
         
-        // 백엔드 저장
+        // 백엔드 저장 (description 포함)
         const dateString = formatDate(today, '-');
         await saveDiaryMutation({
           date: dateString,
           content: gptResponse.line,
           emotion: gptResponse.score,
+          description: gptResponse.description,
         });
       })();
 

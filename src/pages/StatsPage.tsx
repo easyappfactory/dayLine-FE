@@ -57,7 +57,7 @@ export default function Page() {
   // 선택된 날짜 (YYYY-MM-DD)
   const [selectedDate, setSelectedDate] = useState<string>('');
   
-  // 선택된 날짜의 일기 데이터
+  // 선택된 날짜의 일기 데이터 (백엔드에서 description 포함하여 가져옴)
   const selectedEntry: DiaryEntry | null = allMonthlyData.find(d => d.date === selectedDate) || null;
 
   // 데이터 로드 시 초기 선택 날짜 설정 (가장 최근 데이터)
@@ -174,7 +174,7 @@ export default function Page() {
           slidesPerView={1}
           initialSlide={2}
           onSlideChange={(swiper) => setCurrentSlideIndex(swiper.activeIndex)}
-          style={{ height: '350px' }}
+          style={{ height: '300px' }}
         >
           {monthRange.map((monthInfo, index) => (
             <SwiperSlide key={`${monthInfo.year}-${monthInfo.month}`}>
@@ -196,7 +196,7 @@ export default function Page() {
           slidesPerView={1}
           initialSlide={2}
           onSlideChange={(swiper) => setCurrentSlideIndex(swiper.activeIndex)}
-          style={{ height: '350px' }}
+          style={{ height: '300px' }}
         >
           {monthRange.map((monthInfo, index) => (
             <SwiperSlide key={`${monthInfo.year}-${monthInfo.month}`}>
