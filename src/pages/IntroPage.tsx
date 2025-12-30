@@ -13,9 +13,9 @@ export default function Page() {
   const { handleLogin, isLoading } = useLogin();
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      <Post.H2 paddingBottom={24} color={adaptive.grey800} aria-label="앱 설명">
+      <Post.H2 paddingBottom={12} color={adaptive.grey800} aria-label="앱 설명">
       <div style={{ whiteSpace: 'nowrap' }}>
-        <Paragraph.Text>오늘 한 줄로 감정을 돌아보세요</Paragraph.Text>
+        <Paragraph.Text>오늘 한 줄로 감정을 돌아봐요</Paragraph.Text>
       </div>
       </Post.H2>
       <div>
@@ -31,7 +31,7 @@ export default function Page() {
           />
         </>
       </div>
-      <Post.H2 paddingBottom={24} textAlign="left">
+      <Post.H2 paddingBottom={8} textAlign="left">
         <Paragraph.Text>사용 방법</Paragraph.Text>
       </Post.H2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -39,11 +39,11 @@ export default function Page() {
         <StepperRow
           left={<StepperRow.NumberIcon number={1} />}
           center={
-            <div style={{ whiteSpace: 'nowrap' }}>
+            <div style={{ textAlign: 'left' }}>
               <StepperRow.Texts
                 type="A"
-                title="한 문장으로 오늘 하루를 기록해요"
-                description=""
+                title="토스로 로그인해요"
+                description="이름, 전화번호 같은 개인정보는 수집하지 않아요"
               />
             </div>
           }
@@ -51,7 +51,19 @@ export default function Page() {
         <StepperRow
           left={<StepperRow.NumberIcon number={2} />}
           center={
-            <div style={{ whiteSpace: 'nowrap' }}>
+            <div style={{ textAlign: 'left', whiteSpace: 'nowrap' }}>
+              <StepperRow.Texts
+                type="A"
+                title="한 문장으로 오늘을 기록해요"
+                description=""
+              />
+            </div>
+          }
+        />
+        <StepperRow
+          left={<StepperRow.NumberIcon number={3} />}
+          center={
+            <div style={{ textAlign: 'left', whiteSpace: 'nowrap' }}>
               <StepperRow.Texts
                 type="A"
                 title="광고를 보는 동안 AI가 감정을 분석해요"
@@ -59,11 +71,11 @@ export default function Page() {
               />
             </div>
           }
-          />
+        />
         <StepperRow
-          left={<StepperRow.NumberIcon number={3} />}
+          left={<StepperRow.NumberIcon number={4} />}
           center={
-            <div style={{ whiteSpace: 'nowrap' }}>
+            <div style={{ textAlign: 'left', whiteSpace: 'nowrap' }}>
               <StepperRow.Texts
                 type="A"
                 title="그래프로 감정 변화를 확인해요"
