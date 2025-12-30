@@ -25,6 +25,7 @@ dist-ssr
 
 .env
 .env.development
-.env.remote
 .env.production
+.env.remote
 .granite
+*.ait
