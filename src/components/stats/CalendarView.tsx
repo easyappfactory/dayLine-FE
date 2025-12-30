@@ -1,5 +1,5 @@
 import { Text } from '@toss/tds-mobile';
-import { adaptive, colors } from '@toss/tds-colors';
+import { adaptive } from '@toss/tds-colors';
 import type { DiaryEntry } from '../../types/diary';
 import { getDaysInMonth, getFirstDayOfMonth } from '../../utils/dateUtils';
 
@@ -25,12 +25,20 @@ export const CalendarView = ({ year, month, data, selectedDate, onSelectDate }: 
     return data.find(d => d.date === dateStr);
   };
 
+  // Badge weak variant와 동일한 색상 사용 (TDS adaptive 색상)
   const getBackgroundColor = (score: number) => {
-    if (score <= 20) return colors.blue200;
-    if (score <= 40) return colors.blue300;
-    if (score <= 60) return colors.blue400;
-    if (score <= 80) return colors.blue500;
-    return colors.blue600;
+    if (score <= 30) return adaptive.red100;
+    if (score <= 50) return adaptive.yellow100;
+    if (score <= 70) return adaptive.green100;
+    return adaptive.blue100;
+  };
+
+  // 배경색에 맞는 텍스트 색상
+  const getTextColor = (score: number) => {
+    if (score <= 30) return adaptive.red700;
+    if (score <= 50) return adaptive.yellow700;
+    if (score <= 70) return adaptive.green700;
+    return adaptive.blue700;
   };
 
   return (
@@ -49,6 +57,7 @@ export const CalendarView = ({ year, month, data, selectedDate, onSelectDate }: 
           const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const isSelected = selectedDate === dateStr;
           const bg = entry ? getBackgroundColor(entry.score) : 'transparent';
+          const textColor = entry ? getTextColor(entry.score) : adaptive.grey800;
           
           return (
             <div 
@@ -64,12 +73,12 @@ export const CalendarView = ({ year, month, data, selectedDate, onSelectDate }: 
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: isSelected ? `2px solid ${colors.blue900}` : 'none',
+                border: isSelected ? `2px solid ${adaptive.grey200}` : 'none',
                 boxSizing: 'border-box',
               }}>
                 <Text 
                   typography="t6" 
-                  color={entry ? 'white' : adaptive.grey800}
+                  color={textColor}
                   fontWeight={entry ? 'bold' : 'regular'}
                 >
                   {day}

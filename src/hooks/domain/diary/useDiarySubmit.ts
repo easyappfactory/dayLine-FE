@@ -34,42 +34,38 @@ export const useDiarySubmit = ({ trimmedValue, hasTodayDiary }: UseDiarySubmitPr
     }
 
     try {
-      // 2. 광고 표시 (완료될 때까지 대기)
-      //    지원되지 않는 환경이면 내부적으로 alert 띄우고 바로 resolve 됨
-      await showAd();
-
-      // 3. 로딩 시작 (광고가 닫힌 후)
+      // 2. 로딩 시작 (광고 및 데이터 처리 전)
       setIsLoading(true);
 
-      // 4. 데이터 처리 (GPT 분석 -> 저장)
-      const dataPromise = (async () => {
-        // GPT 분석
-        const gptResponse = await analyzeDiaryText(trimmedValue);
+      // 3. 광고와 데이터 처리를 병렬로 실행
+      //    광고 보는 동안 GPT 분석 + 백엔드 저장이 동시에 진행됨
+      //    → 광고 중 앱이 백그라운드로 가도 데이터는 이미 저장된 상태!
+      await Promise.all([
+        // 광고 표시 (네이티브에서 독립적으로 실행)
+        showAd(),
         
-        // 검증
-        if (!gptResponse || !gptResponse.line || typeof gptResponse.score !== 'number') {
-          throw new Error('GPT 응답이 올바르지 않습니다.');
-        }
-        
-        // 백엔드 저장
-        const dateString = formatDate(today, '-');
-        await saveDiaryMutation({
-          date: dateString,
-          content: gptResponse.line,
-          emotion: gptResponse.score,
-        });
-      })();
-
-      // 에러 캐치용 래퍼
-      const safeDataPromise = dataPromise.catch(err => ({ error: err }));
+        // 데이터 처리 (GPT 분석 -> 백엔드 저장)
+        (async () => {
+          // GPT 분석
+          const gptResponse = await analyzeDiaryText(trimmedValue);
+          
+          // 검증
+          if (!gptResponse || !gptResponse.line || typeof gptResponse.score !== 'number') {
+            throw new Error('GPT 응답이 올바르지 않습니다.');
+          }
+          
+          // 백엔드 저장 (description 포함)
+          const dateString = formatDate(today, '-');
+          await saveDiaryMutation({
+            date: dateString,
+            content: gptResponse.line,
+            emotion: gptResponse.score,
+            description: gptResponse.description,
+          });
+        })()
+      ]);
       
-      // 실행 결과 확인
-      const result = await safeDataPromise;
-      if (result && 'error' in result) {
-        throw result.error;
-      }
-      
-      // 5. 성공 시 이동
+      // 4. 성공 시 이동
       navigate('/stats');
 
     } catch (error) {

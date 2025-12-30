@@ -20,34 +20,57 @@ export default function Page() {
   const [showComplete, setShowComplete] = useState(!skipComplete);
   const [selectedTab, setSelectedTab] = useState(0); // 0: 그래프, 1: 달력
   
-  // 현재 보여줄 년월
+  // 현재 날짜 기준
   const today = new Date();
-  const currentYear = today.getFullYear();
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth()); // 0-based index
+  const todayYear = today.getFullYear();
+  const todayMonth = today.getMonth();
 
-  // 1월 ~ 12월 (0 ~ 11)
-  const months = Array.from({ length: 12 }, (_, i) => i);
+  // Swiper에서 현재 보고 있는 슬라이드 인덱스 (0~4, 중앙이 현재 월)
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(2);
 
-  // 백엔드 API로 받아온 월별 데이터 (React Query)
-  const { data: monthlyData = [] } = useMonthlyDiaries(currentYear, currentMonth);
+  // 현재 월 기준 ±2개월 범위 생성 (총 5개월)
+  const getMonthRange = (year: number, month: number) => {
+    const result = [];
+    for (let offset = -2; offset <= 2; offset++) {
+      const totalMonths = year * 12 + month + offset;
+      const targetYear = Math.floor(totalMonths / 12);
+      const targetMonth = totalMonths % 12;
+      result.push({ year: targetYear, month: targetMonth });
+    }
+    return result;
+  };
+
+  const monthRange = getMonthRange(todayYear, todayMonth);
+
+  // 각 월별 데이터를 개별적으로 가져오기
+  const { data: month0Data = [] } = useMonthlyDiaries(monthRange[0].year, monthRange[0].month);
+  const { data: month1Data = [] } = useMonthlyDiaries(monthRange[1].year, monthRange[1].month);
+  const { data: month2Data = [] } = useMonthlyDiaries(monthRange[2].year, monthRange[2].month);
+  const { data: month3Data = [] } = useMonthlyDiaries(monthRange[3].year, monthRange[3].month);
+  const { data: month4Data = [] } = useMonthlyDiaries(monthRange[4].year, monthRange[4].month);
+
+  const monthDataArray = [month0Data, month1Data, month2Data, month3Data, month4Data];
+
+  // 모든 월의 데이터를 합침 (선택된 날짜 찾기용)
+  const allMonthlyData = monthDataArray.flat();
 
   // 선택된 날짜 (YYYY-MM-DD)
   const [selectedDate, setSelectedDate] = useState<string>('');
   
-  // 선택된 날짜의 일기 데이터
-  const selectedEntry: DiaryEntry | null = monthlyData.find(d => d.date === selectedDate) || null;
+  // 선택된 날짜의 일기 데이터 (백엔드에서 description 포함하여 가져옴)
+  const selectedEntry: DiaryEntry | null = allMonthlyData.find(d => d.date === selectedDate) || null;
 
   // 데이터 로드 시 초기 선택 날짜 설정 (가장 최근 데이터)
   useEffect(() => {
-    if (monthlyData.length > 0 && !selectedDate) {
+    if (allMonthlyData.length > 0 && !selectedDate) {
       // 날짜 내림차순 정렬 후 첫 번째
-      const sorted = [...monthlyData].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      const sorted = [...allMonthlyData].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       if (sorted.length > 0) {
         // eslint-disable-next-line
         setSelectedDate(sorted[0].date);
       }
     }
-  }, [monthlyData, selectedDate]);
+  }, [allMonthlyData, selectedDate]);
 
   // 날짜 선택 핸들러
   const handleSelectDate = (date: string) => {
@@ -134,7 +157,7 @@ export default function Page() {
               fontWeight="bold"
               typography="t5"
             >
-              {currentYear}.{currentMonth + 1}월 한 줄 
+              {monthRange[currentSlideIndex].year}.{monthRange[currentSlideIndex].month + 1}월 한 줄 
             </ListHeader.TitleParagraph>
           }
           descriptionPosition="bottom"
@@ -144,21 +167,21 @@ export default function Page() {
 
       {/* 탭에 따라 다른 Swiper 렌더링 */}
       {selectedTab === 0 ? (
-        // 그래프 탭: 좌우 스크롤
+        // 그래프 탭: 앞뒤 2개월씩 총 5개월 표시
         <Swiper
           key="graph-swiper"
           spaceBetween={0}
           slidesPerView={1}
-          initialSlide={currentMonth}
-          onSlideChange={(swiper) => setCurrentMonth(swiper.activeIndex)}
-          style={{ height: '350px' }} // 달력 탭과 동일한 높이 지정
+          initialSlide={2}
+          onSlideChange={(swiper) => setCurrentSlideIndex(swiper.activeIndex)}
+          style={{ height: '300px' }}
         >
-          {months.map((month) => (
-            <SwiperSlide key={month}>
+          {monthRange.map((monthInfo, index) => (
+            <SwiperSlide key={`${monthInfo.year}-${monthInfo.month}`}>
               <GraphView 
-                year={currentYear} 
-                month={month} 
-                data={month === currentMonth ? monthlyData : []} // 현재 월 데이터만 전달
+                year={monthInfo.year} 
+                month={monthInfo.month} 
+                data={monthDataArray[index]}
                 selectedDate={selectedDate}
                 onSelectDate={handleSelectDate}
               />
@@ -166,22 +189,21 @@ export default function Page() {
           ))}
         </Swiper>
       ) : (
-        // 달력 탭: 상하 스크롤
+        // 달력 탭: 앞뒤 2개월씩 총 5개월 표시
         <Swiper
           key="calendar-swiper"
-          direction="vertical"
           spaceBetween={0}
           slidesPerView={1}
-          initialSlide={currentMonth}
-          onSlideChange={(swiper) => setCurrentMonth(swiper.activeIndex)}
-          style={{ height: '350px' }} // 세로 스크롤을 위해 높이 지정 필요
+          initialSlide={2}
+          onSlideChange={(swiper) => setCurrentSlideIndex(swiper.activeIndex)}
+          style={{ height: '300px' }}
         >
-          {months.map((month) => (
-            <SwiperSlide key={month}>
+          {monthRange.map((monthInfo, index) => (
+            <SwiperSlide key={`${monthInfo.year}-${monthInfo.month}`}>
               <CalendarView 
-                year={currentYear} 
-                month={month} 
-                data={month === currentMonth ? monthlyData : []} // 현재 월 데이터만 전달
+                year={monthInfo.year} 
+                month={monthInfo.month} 
+                data={monthDataArray[index]}
                 selectedDate={selectedDate}
                 onSelectDate={handleSelectDate}
               />

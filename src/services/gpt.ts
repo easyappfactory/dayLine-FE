@@ -5,6 +5,7 @@
 interface DiaryAnalysisResponse {
   line: string;
   score: number;
+  description: string;
 }
 
 interface GPTChatMessage {
@@ -35,7 +36,21 @@ export async function analyzeDiaryText(text: string): Promise<DiaryAnalysisRespo
         messages: [
           {
             role: 'system',
-            content: '당신은 사용자의 하루 일기를 분석하여 감정 점수를 매기는 AI입니다. 0-100점 사이의 점수로 평가하며, 긍정적일수록 높은 점수를 부여합니다.',
+            content: `당신은 사용자의 하루 일기를 분석하여 감정 점수를 산출하는 AI입니다.
+                      또한 점수를 매긴 이유를 설명하고, 사용자에게 따뜻한 조언, 위로, 또는 응원의 메시지를 전달해주세요. 최대 100자 이내로 작성해주세요.
+                      
+                      규칙:
+                      점수는 0~100 사이의 양의 정수입니다.
+                      5점 또는 10점 단위 점수를 사용하지 마십시오.
+                      반올림, 구간화, 등급화를 절대 하지 마십시오.
+                      점수는 연속적인 값처럼 분포해야 합니다.
+
+                      절차:
+                      1. 내부적으로 감정 상태를 0.0~1.0 사이의 실수로 계산합니다.
+                      2. 해당 값을 0~100 범위의 정수로 변환합니다.
+                      3. 자연스러운 정수를 선택하며 반올림 규칙은 사용하지 않습니다.
+                      4. 사용자에게 전하는 조언, 위로, 또는 응원의 메시지는 한글로 작성해주세요.
+                      `,
           },
           {
             role: 'user',
@@ -55,8 +70,12 @@ export async function analyzeDiaryText(text: string): Promise<DiaryAnalysisRespo
                   maximum: 100,
                   description: '감정 점수 (0-100)',
                 },
+                description: {
+                  type: 'string',
+                  description: '점수에 대한 설명과 사용자에게 전하는 조언/위로/응원 메시지',
+                },
               },
-              required: ['score'],
+              required: ['score', 'description'],
               additionalProperties: false,
             },
           },
@@ -79,12 +98,13 @@ export async function analyzeDiaryText(text: string): Promise<DiaryAnalysisRespo
     }
 
     // JSON 파싱
-    const result: { score: number } = JSON.parse(content);
+    const result: { score: number; description: string } = JSON.parse(content);
     
-    // GPT 응답에는 score만 있으므로, line은 사용자가 입력한 원본 텍스트 사용
+    // line은 사용자가 입력한 원본 텍스트 사용
     return {
       line: text,
       score: result.score,
+      description: result.description,
     };
   } catch (error) {
     console.error('GPT API 호출 실패:', error);

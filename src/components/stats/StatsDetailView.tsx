@@ -24,6 +24,14 @@ export const StatsDetailView = ({ entry, selectedDate }: StatsDetailViewProps) =
   // 날짜 포맷팅 (YYYY.MM.DD)
   const formattedDate = selectedDate.replace(/-/g, '.');
 
+  // 점수에 따른 색상 결정
+  const getBadgeColor = (score: number): "red" | "yellow" | "green" | "blue" => {
+    if (score <= 30) return "red";
+    if (score <= 50) return "yellow";
+    if (score <= 70) return "green";
+    return "blue";
+  };
+
   return (
     <div>
       <ListHeader
@@ -41,20 +49,49 @@ export const StatsDetailView = ({ entry, selectedDate }: StatsDetailViewProps) =
       />
       
       <div style={{ marginBottom: '16px', display: 'flex' , padding: '0 24px'}}>
-        <Badge variant="weak" color="blue" size="medium">
+        <Badge variant="weak" color={getBadgeColor(entry.score)} size="medium">
           + {entry.score}
         </Badge>
       </div>
 
       <Text
         display="block"
-        color={adaptive.grey700}
+        color={adaptive.grey800}
         typography="t5"
-        fontWeight="regular"
-        style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}
+        fontWeight="medium"
+        style={{ whiteSpace: 'pre-wrap', lineHeight: '1.7', padding: '0 24px', textAlign: 'left' }}
       >
         {entry.line}
       </Text>
+
+      {entry.description && (
+        <div style={{ 
+          margin: '20px 24px 0',
+          padding: '16px',
+          backgroundColor: adaptive.grey50,
+          borderRadius: '12px',
+          border: `1px solid ${adaptive.grey100}`
+        }}>
+          <Text
+            display="block"
+            color={adaptive.grey600}
+            typography="t7"
+            fontWeight="semibold"
+            style={{ marginBottom: '8px', textAlign: 'left' }}
+          >
+            💡 오늘의 한마디
+          </Text>
+          <Text
+            display="block"
+            color={adaptive.grey500}
+            typography="t7"
+            fontWeight="regular"
+            style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', textAlign: 'left' }}
+          >
+            {entry.description}
+          </Text>
+        </div>
+      )}
     </div>
   );
 };
